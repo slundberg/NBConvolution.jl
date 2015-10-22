@@ -1,3 +1,4 @@
+using Distributions
 
 export FurmanNegativeBinomialConvolution, pmf
 
@@ -19,7 +20,7 @@ type FurmanNegativeBinomialConvolution
     delta::Array{Float64,1}
 end
 function FurmanNegativeBinomialConvolution(rs::Array{Float64,1}, ps::Array{Float64,1}, numTerms=500)
-    pmax = maximum(ps)
+    pmax = Base.maximum(ps)
     @assert pmax < 1
 
     R = 1.0
@@ -42,7 +43,7 @@ function FurmanNegativeBinomialConvolution(rs::Array{Float64,1}, ps::Array{Float
 end
 
 "Approximate the PMF at the given point with a truncated sum."
-function pmf(d::FurmanNegativeBinomialConvolution, s::Int)
+function Distributions.pdf(d::FurmanNegativeBinomialConvolution, s::Int)
     total = 0.0
     lastv = 0.0
     for k in 0:d.numTerms-1

@@ -1,15 +1,29 @@
+using Distributions
+#using Distributions: check_args
 
 export NegativeBinomialConvolution, pmf, cdf
 
-"""
-This is based on the paper:
-"On the sums of compound negative binomial and gamma random variables" by Vallaisamy, 2009
-http://projecteuclid.org/euclid.jap/1238592129
-"""
-type NegativeBinomialConvolution
+immutable NegativeBinomialConvolution <: DiscreteUnivariateDistribution
     rs::Array{Int64,1}
     ps::Array{Float64,1}
+
+    """
+    This is based on the paper:
+    "On the sums of compound negative binomial and gamma random variables" by Vallaisamy, 2009
+    http://projecteuclid.org/euclid.jap/1238592129
+    """
+    function NegativeBinomialConvolution(rs::Array{Int,1}, ps::Array{Float64,1})
+        # @check_args(NegativeBinomialConvolution, minimum(rs) > zero(rs[1]))
+        # @Distributions.check_args(NegativeBinomialConvolution, minimum(ps) > zero(ps[1]))
+        # @Distributions.check_args(NegativeBinomialConvolution, Base.maximum(ps) < one(ps[1]))
+        new(rs, ps)
+    end
 end
+
+@Distributions.distr_support NegativeBinomialConvolution 0 Inf
+
+
+params(d::NegativeBinomialConvolution) = (d.rs, d.ps)
 
 
 "Call f on all possible ways n non-negative integers can sum to equal s."
@@ -56,7 +70,7 @@ function allsums_apply(f::Function, n::Int, s::Int)
 end
 
 "Compute the exact PMF at the given point with a sum."
-function pmf(d::NegativeBinomialConvolution, s::Int)
+function Distributions.pdf(d::NegativeBinomialConvolution, s::Int)
     total = 0.0
 
     function inner_term(m)
@@ -70,10 +84,10 @@ function pmf(d::NegativeBinomialConvolution, s::Int)
     total
 end
 
-function cdf(d::NegativeBinomialConvolution, s::Int)
+function Distributions.cdf(d::NegativeBinomialConvolution, s::Int)
     total = 0.0
     for i in 0:s
-        total += pmf(d, i)
+        total += pdf(d, i)
     end
     total
 end
