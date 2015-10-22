@@ -1,5 +1,5 @@
 
-export NegativeBinomialSum, pmf
+export NegativeBinomialSum, pmf, cdf
 
 """
 This is based on the paper:
@@ -67,5 +67,13 @@ function pmf(d::NegativeBinomialSum, s::Int)
         total += val
     end
     allsums_apply(inner_term, length(d.ps), s)
+    total
+end
+
+function cdf(d::NegativeBinomialSum, s::Int)
+    total = 0.0
+    for i in 0:s
+        total += pmf(d, i)
+    end
     total
 end

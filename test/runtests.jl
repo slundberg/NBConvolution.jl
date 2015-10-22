@@ -13,3 +13,6 @@ d2 = NegativeBinomialSum([4, 10], [0.5, 0.5])
 d1 = FurmanNegativeBinomialSum([4.0, 10.0, 3.0, 6.0], [0.4, 0.5, 0.3, 0.6], 1000)
 d2 = NegativeBinomialSum([4, 10, 3, 6], [0.4, 0.5, 0.3, 0.6])
 @test abs(pmf(d1, 30) - pmf(d2, 30)) < 1e-10
+
+d2 = NegativeBinomialSum([4, 10], [0.7, 0.5])
+@test abs(cdf(d2, 100) - 1.0) < 1e-10
