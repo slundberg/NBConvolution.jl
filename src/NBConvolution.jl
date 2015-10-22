@@ -1,4 +1,4 @@
-module NegativeBinomialConvolution
+module NBConvolution
 
 # package code goes here
 include("vellaisamy.jl")

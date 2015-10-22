@@ -1,12 +1,12 @@
 
-export NegativeBinomialSum, pmf, cdf
+export NegativeBinomialConvolution, pmf, cdf
 
 """
 This is based on the paper:
 "On the sums of compound negative binomial and gamma random variables" by Vallaisamy, 2009
 http://projecteuclid.org/euclid.jap/1238592129
 """
-type NegativeBinomialSum
+type NegativeBinomialConvolution
     rs::Array{Int64,1}
     ps::Array{Float64,1}
 end
@@ -56,7 +56,7 @@ function allsums_apply(f::Function, n::Int, s::Int)
 end
 
 "Compute the exact PMF at the given point with a sum."
-function pmf(d::NegativeBinomialSum, s::Int)
+function pmf(d::NegativeBinomialConvolution, s::Int)
     total = 0.0
 
     function inner_term(m)
@@ -70,7 +70,7 @@ function pmf(d::NegativeBinomialSum, s::Int)
     total
 end
 
-function cdf(d::NegativeBinomialSum, s::Int)
+function cdf(d::NegativeBinomialConvolution, s::Int)
     total = 0.0
     for i in 0:s
         total += pmf(d, i)

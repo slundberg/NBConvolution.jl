@@ -1,5 +1,5 @@
 
-export FurmanNegativeBinomialSum, pmf
+export FurmanNegativeBinomialConvolution, pmf
 
 """
 This is based on the paper:
@@ -8,7 +8,7 @@ http://www.math.yorku.ca/~efurman/PDFs/NBconv.pdf
 
 This is an approximation that is primarily superseded by an exact solution by Vallaisamy in 2009.
 """
-type FurmanNegativeBinomialSum
+type FurmanNegativeBinomialConvolution
     rs::Array{Float64,1}
     ps::Array{Float64,1}
     numTerms::Int64
@@ -18,7 +18,7 @@ type FurmanNegativeBinomialSum
     xi::Array{Float64,1}
     delta::Array{Float64,1}
 end
-function FurmanNegativeBinomialSum(rs::Array{Float64,1}, ps::Array{Float64,1}, numTerms=500)
+function FurmanNegativeBinomialConvolution(rs::Array{Float64,1}, ps::Array{Float64,1}, numTerms=500)
     pmax = maximum(ps)
     @assert pmax < 1
 
@@ -38,11 +38,11 @@ function FurmanNegativeBinomialSum(rs::Array{Float64,1}, ps::Array{Float64,1}, n
         delta[k+1] = sum([i*xi[i]*delta[k+1-i] for i in 1:k])/k
     end
 
-    FurmanNegativeBinomialSum(float(rs), ps, numTerms, pmax, R, sum(rs), xi, delta)
+    FurmanNegativeBinomialConvolution(float(rs), ps, numTerms, pmax, R, sum(rs), xi, delta)
 end
 
 "Approximate the PMF at the given point with a truncated sum."
-function pmf(d::FurmanNegativeBinomialSum, s::Int)
+function pmf(d::FurmanNegativeBinomialConvolution, s::Int)
     total = 0.0
     lastv = 0.0
     for k in 0:d.numTerms-1
@@ -52,7 +52,7 @@ function pmf(d::FurmanNegativeBinomialSum, s::Int)
         # cheap check to make sure we don't have significant terms left to add
         if k == d.numTerms-1 && ((lastv < v && v > 1e-50) || v > 1e-10)
             println("$lastv $v")
-            error("Sum expansion in NegativeBinomialSum left error! Consider using more terms.")
+            error("Sum expansion in NegativeBinomialConvolution left error! Consider using more terms.")
         end
         lastv = v
     end
