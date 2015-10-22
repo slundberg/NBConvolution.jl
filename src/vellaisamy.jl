@@ -4,8 +4,11 @@ using Distributions
 export NegativeBinomialConvolution, pmf, cdf
 
 immutable NegativeBinomialConvolution <: DiscreteUnivariateDistribution
-    rs::Array{Int64,1}
+    rs::Array{Float64,1}
     ps::Array{Float64,1}
+    logrs::Array{Float64,1}
+    logps::Array{Float64,1}
+    logqs::Array{Float64,1}
     mean::Float64
     stddev::Float64
 
@@ -14,7 +17,7 @@ immutable NegativeBinomialConvolution <: DiscreteUnivariateDistribution
     "On the sums of compound negative binomial and gamma random variables" by Vallaisamy, 2009
     http://projecteuclid.org/euclid.jap/1238592129
     """
-    function NegativeBinomialConvolution(rs::Array{Int,1}, ps::Array{Float64,1})
+    function NegativeBinomialConvolution(rs::Array{Float64,1}, ps::Array{Float64,1})
         # @check_args(NegativeBinomialConvolution, minimum(rs) > zero(rs[1]))
         # @Distributions.check_args(NegativeBinomialConvolution, minimum(ps) > zero(ps[1]))
         # @Distributions.check_args(NegativeBinomialConvolution, Base.maximum(ps) < one(ps[1]))
@@ -23,8 +26,10 @@ immutable NegativeBinomialConvolution <: DiscreteUnivariateDistribution
         meanVal = sum([(ps[i]*rs[i])/(1-ps[i]) for i in 1:length(ps)])
         varVal = sum([(ps[i]*rs[i])/(1-ps[i])^2 for i in 1:length(ps)])
 
-        new(rs, ps, meanVal, sqrt(varVal))
+        new(rs, ps, log(rs), log(ps), log(1 - ps), meanVal, sqrt(varVal))
     end
+    NegativeBinomialConvolution(rs::Array{Real,1}, ps::Array{Real,1}) = NegativeBinomialConvolution(convert(Array{Float64,1}, rs), convert(Array{Float64,1}, ps))
+    NegativeBinomialConvolution(rs::Array{Int64,1}, ps::Array{Float64,1}) = NegativeBinomialConvolution(convert(Array{Float64,1}, rs), convert(Array{Float64,1}, ps))
 end
 
 @Distributions.distr_support NegativeBinomialConvolution 0 Inf
@@ -80,21 +85,18 @@ end
 function Distributions.pdf(d::NegativeBinomialConvolution, s::Int)
     total = 0.0
 
-    # short cut for very large values way past our distribution
+    # shortcut for very large values way past our distribution
     if d.mean + 20*d.stddev < s
         return 0.0
     end
 
     function inner_term(m)
-        val = 1.0
+        val = 0.0
         for j in 1:length(d.ps)
-            try
-                val *= binomial(d.rs[j] + m[j] - 1, m[j])*d.ps[j]^d.rs[j]*(1-d.ps[j])^m[j]
-            catch
-                val *= binomial(BigInt(d.rs[j] + m[j] - 1), BigInt(m[j]))*d.ps[j]^d.rs[j]*(1-d.ps[j])^m[j]
-            end
+            binVal = lgamma(d.rs[j] + m[j]) - lgamma(m[j]+1) - lgamma(d.rs[j])
+            val += binVal + d.rs[j]*d.logps[j] + m[j]*d.logqs[j]
         end
-        total += val
+        total += exp(val)
     end
     allsums_apply(inner_term, length(d.ps), s)
     total

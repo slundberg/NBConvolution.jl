@@ -15,7 +15,7 @@ type FurmanNegativeBinomialConvolution
     numTerms::Int64
     pmax::Float64
     R::Float64
-    rsum::Int64
+    rsum::Float64
     xi::Array{Float64,1}
     delta::Array{Float64,1}
 end
