@@ -6,6 +6,8 @@ export NegativeBinomialConvolution, pmf, cdf
 immutable NegativeBinomialConvolution <: DiscreteUnivariateDistribution
     rs::Array{Int64,1}
     ps::Array{Float64,1}
+    mean::Float64
+    stddev::Float64
 
     """
     This is based on the paper:
@@ -16,7 +18,12 @@ immutable NegativeBinomialConvolution <: DiscreteUnivariateDistribution
         # @check_args(NegativeBinomialConvolution, minimum(rs) > zero(rs[1]))
         # @Distributions.check_args(NegativeBinomialConvolution, minimum(ps) > zero(ps[1]))
         # @Distributions.check_args(NegativeBinomialConvolution, Base.maximum(ps) < one(ps[1]))
-        new(rs, ps)
+
+        # just add the means and variances to get the convolution mean and variance
+        meanVal = sum([(ps[i]*rs[i])/(1-ps[i]) for i in 1:length(ps)])
+        varVal = sum([(ps[i]*rs[i])/(1-ps[i])^2 for i in 1:length(ps)])
+
+        new(rs, ps, meanVal, sqrt(varVal))
     end
 end
 
@@ -73,10 +80,19 @@ end
 function Distributions.pdf(d::NegativeBinomialConvolution, s::Int)
     total = 0.0
 
+    # short cut for very large values way past our distribution
+    if d.mean + 20*d.stddev < s
+        return 0.0
+    end
+
     function inner_term(m)
         val = 1.0
         for j in 1:length(d.ps)
-            val *= binomial(d.rs[j] + m[j] - 1, m[j])*d.ps[j]^d.rs[j]*(1-d.ps[j])^m[j]
+            try
+                val *= binomial(d.rs[j] + m[j] - 1, m[j])*d.ps[j]^d.rs[j]*(1-d.ps[j])^m[j]
+            catch
+                val *= binomial(BigInt(d.rs[j] + m[j] - 1), BigInt(m[j]))*d.ps[j]^d.rs[j]*(1-d.ps[j])^m[j]
+            end
         end
         total += val
     end
