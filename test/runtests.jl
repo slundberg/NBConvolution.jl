@@ -17,11 +17,11 @@ d2 = NegativeBinomialConvolution([4, 10, 3, 6], [0.4, 0.5, 0.3, 0.6])
 
 # cdf
 d2 = NegativeBinomialConvolution([4, 10], [0.7, 0.5])
-@test abs(cdf(d2, 1000000) - 1.0) < 1e-10
+@test abs(cdf(d2, 1000) - 1.0) < 1e-10
 
 # non-integer rs
 d3 = NegativeBinomialConvolution([4.2, 10], [0.7, 0.5])
-@test abs(cdf(d3, 1000000) - 1.0) < 1e-10
+@test abs(cdf(d3, 1000) - 1.0) < 1e-10
 @test abs(pdf(d2, 10) - pdf(d3, 10)) > 1e-10
 d4 = FurmanNegativeBinomialConvolution([4.2, 10.0], [0.7, 0.5], 1000)
 @test abs(pdf(d3, 4) - pdf(d4, 4)) < 1e-10

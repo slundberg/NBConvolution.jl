@@ -83,23 +83,25 @@ end
 
 "Compute the exact PMF at the given point with a sum."
 function Distributions.pdf(d::NegativeBinomialConvolution, s::Int)
+    exp(Distributions.logpdf(d::NegativeBinomialConvolution, s::Int))
+end
+
+function Distributions.logpdf(d::NegativeBinomialConvolution, s::Int)
     total = 0.0
 
-    # shortcut for very large values way past our distribution
-    if d.mean + 20*d.stddev < s
-        return 0.0
-    end
-
+    vals = Float64[]
     function inner_term(m)
         val = 0.0
         for j in 1:length(d.ps)
             binVal = lgamma(d.rs[j] + m[j]) - lgamma(m[j]+1) - lgamma(d.rs[j])
             val += binVal + d.rs[j]*d.logps[j] + m[j]*d.logqs[j]
         end
-        total += exp(val)
+        push!(vals, val)
     end
     allsums_apply(inner_term, length(d.ps), s)
-    total
+
+    maxVal = Base.maximum(vals)
+    maxVal + log(sum(map(x->exp(x-maxVal), vals)))
 end
 
 function Distributions.cdf(d::NegativeBinomialConvolution, s::Int)
